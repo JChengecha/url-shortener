@@ -4,16 +4,20 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Copy, Check } from 'lucide-react'
 
 export default function UrlForm() {
   const [longUrl, setLongUrl] = useState('')
   const [shortUrl, setShortUrl] = useState('')
+  const [shortCode, setShortCode] = useState('')
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setShortUrl('')
+    setShortCode('')
     try {
       const response = await fetch('/api/shorten', {
         method: 'POST',
@@ -22,7 +26,9 @@ export default function UrlForm() {
       })
       const data = await response.json()
       if (response.ok) {
-        setShortUrl(data.shortUrl)
+        setShortUrl(`${process.env.NEXT_PUBLIC_BASE_URL}/${data.shortCode}`)
+        setShortCode(data.shortCode)
+        setCopied(false)
       } else {
         setError(data.error || 'An error occurred while shortening the URL')
       }
@@ -30,6 +36,12 @@ export default function UrlForm() {
       console.error('Error in handleSubmit:', err)
       setError('An unexpected error occurred. Please try again.')
     }
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shortUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -49,14 +61,34 @@ export default function UrlForm() {
         </Alert>
       )}
       {shortUrl && (
-        <div className="mt-4 p-4 bg-light-gray dark:bg-dark-gray rounded-md">
-          <p className="text-charcoal dark:text-off-white">Shortened URL:</p>
-          <a href={shortUrl} target="_blank" rel="noopener noreferrer" className="text-teal hover:underline dark:text-mint">
-            {shortUrl}
-          </a>
+        <div className="mt-4">
+          <div className="flex items-center space-x-2">
+            <Input 
+              type="text" 
+              value={shortUrl} 
+              readOnly 
+              className="flex-grow bg-light-gray dark:bg-dark-gray text-charcoal dark:text-off-white"
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon" 
+              onClick={handleCopy}
+              className="text-charcoal dark:text-off-white border-charcoal dark:border-off-white"
+            >
+              {copied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
+            </Button>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            Short code: {shortCode}
+          </p>
+          {copied && (
+            <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+              URL copied to clipboard!
+            </p>
+          )}
         </div>
       )}
     </form>
   )
 }
-

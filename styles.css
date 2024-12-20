@@ -1,0 +1,60 @@
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  /* Add aria-label for accessibility */
+  aria-label: "Dark mode toggle";
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: var(--size-of-icon,1.4em);
+  width: var(--size-of-icon,1.4em);
+  left: var(--slider-offset,0.3em);
+  bottom: var(--slider-offset,0.3em);
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  background: linear-gradient(40deg,#ff0080,#ff8c00 70%);
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(calc(60px - (var(--size-of-icon,1.4em) + (var(--slider-offset,0.3em) * 2))));
+  background: #303136;
+  /* change the value of the inset x and y to change the angle and direction of the moon */
+  --moon-x-offset: -3px;
+  --moon-y-offset: -2px;
+  box-shadow: inset var(--moon-x-offset) var(--moon-y-offset) 5px -2px #8983f7, inset calc(var(--moon-x-offset) * 3) calc(var(--moon-y-offset) * 2) 0 0 #a3dafb;
+}
+/* add a transition to the box-shadow */
+.slider:before {
+  transition: box-shadow .4s ease-in-out;
+}
+/* add a transition to the background */
+.slider {
+  transition: background-color .4s ease-in-out;
+}

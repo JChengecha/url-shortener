@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "C:\\Users\\josep\\Documents\\Projects\\url-shortener\\url-shortener\\logs\\.82b98439a2d800a7377758ce6b922188b76205a2-audit.json",
+    "files": [
+        {
+            "date": 1734662548764,
+            "name": "C:\\Users\\josep\\Documents\\Projects\\url-shortener\\url-shortener\\logs\\error-2024-12-20.log",
+            "hash": "2d8f13737f5cb23be2b96004c50f42229336a2fdafdeef3dbe31ee5bdcb2508a"
+        }
+    ],
+    "hashType": "sha256"
+}

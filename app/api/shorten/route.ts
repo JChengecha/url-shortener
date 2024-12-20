@@ -1,24 +1,56 @@
 import { NextResponse } from 'next/server'
-import { nanoid } from 'nanoid'
-import { saveUrl } from '@/lib/db'
+import { z } from 'zod'
+import { UrlService } from '@/lib/urlService'
+
+// Input validation schema
+const shortenInputSchema = z.object({
+  longUrl: z.string().url('Invalid URL format'),
+  customAlias: z.string().optional(),
+  expiryDate: z.string().optional().transform(val => val ? new Date(val) : undefined)
+})
 
 export async function POST(req: Request) {
   try {
-    const { longUrl } = await req.json()
-    if (!longUrl) {
-      return NextResponse.json({ error: 'Long URL is required' }, { status: 400 })
-    }
-    const shortCode = nanoid(7) // Generate a 7-character short code
-    await saveUrl(longUrl, shortCode)
-    const shortUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/${shortCode}`
-    return NextResponse.json({ shortUrl })
+    // Parse and validate input
+    const body = await req.json()
+    const { longUrl, customAlias, expiryDate } = shortenInputSchema.parse(body)
+
+    // Shorten URL
+    const urlEntry = await UrlService.shortenUrl({
+      originalUrl: longUrl,
+      customAlias,
+      expiryDate
+    })
+
+    // Construct full short URL
+    const shortUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/${urlEntry.shortUrl}`
+
+    return NextResponse.json({ 
+      shortUrl, 
+      shortCode: urlEntry.shortUrl,
+      originalUrl: urlEntry.originalUrl,
+      createdAt: urlEntry.createdAt
+    })
   } catch (error) {
     console.error('Error in /api/shorten:', error)
-    // Check if error is an instance of Error
-    if (error instanceof Error) {
-      return NextResponse.json({ error: `Internal server error: ${error.message}` }, { status: 500 })
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ 
+        error: 'Validation failed', 
+        details: error.errors 
+      }, { status: 400 })
     }
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+
+    // Handle other errors
+    if (error instanceof Error) {
+      return NextResponse.json({ 
+        error: `Internal server error: ${error.message}` 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ 
+      error: 'An unexpected error occurred' 
+    }, { status: 500 })
   }
 }
-
